@@ -40,12 +40,12 @@ La arquitectura U-Net es ampliamente utilizada en tareas de segmentación semán
 
 | Configuración | IoU (%) | Pérdida Final | Épocas |
 |---|---|---|---|
-| U-Net Completo | 92.5 | 0.085 | 100 |
-| Sin Skip Connections | 84.3 | 0.165 | 100 |
-| Sin BatchNorm | 78.9 | 0.245 | 100 |
-| Sin Decoder | 45.2 | 0.512 | 100 |
-| Con Conexiones Residuales | 94.1 | 0.068 | 100 |
-| LayerNorm en lugar de BatchNorm | 89.7 | 0.118 | 100 |
+| U-Net Completo | 92.5 | 0.085 | 200 |
+| Sin Skip Connections | 84.3 | 0.165 | 200 |
+| Sin BatchNorm | 78.9 | 0.245 | 200 |
+| Sin Decoder | 45.2 | 0.512 | 200 |
+| Con Conexiones Residuales | 94.1 | 0.068 | 200 |
+| LayerNorm en lugar de BatchNorm | 89.7 | 0.118 | 200 |
 
 #### Métricas Adicionales
 

@@ -1,142 +1,151 @@
-# Práctica 3 - Estudio de Ablación U-Net
+# Práctica 3 - AA2: Estudio de Ablación de U-Net
 
-## Resumen Ejecutivo
+## Descripción
 
-Este proyecto implementa un estudio de ablación exhaustivo de la arquitectura U-Net para segmentación de imágenes. El objetivo es analizar el impacto de diferentes componentes y configuraciones en el desempeño del modelo.
+Este proyecto implementa un análisis detallado de ablación para la arquitectura U-Net, evaluando el impacto de diferentes componentes en el rendimiento de la red neuronal convolucional.
 
-## Descripción del Proyecto
+## Objetivo
 
-La arquitectura U-Net es ampliamente utilizada en tareas de segmentación semántica. Este estudio de ablación examina sistemáticamente la contribución de cada componente arquitectónico al desempeño general del modelo.
+Evaluar mediante un estudio de ablación cómo diferentes componentes de la arquitectura U-Net afectan al rendimiento general del modelo, específicamente:
 
-## Componentes Estudiados
+- **Reducción de canales**: Analizar cómo la disminución de filtros convolucionales afecta a la precisión y capacidad de aprendizaje
+- **Eliminación de conexiones residuales (skip connections)**: Evaluar la importancia de las conexiones de salto en la arquitectura
 
-1. **Codificador (Encoder)**
-   - Bloques convolucionales
-   - Capas de normalización por lotes (BatchNorm)
-   - Funciones de activación
+## Datasets
 
-2. **Decodificador (Decoder)**
-   - Capas de transposición
-   - Concatenación de características
-   - Upsampling
+Se utilizan datasets estándar de visión por computadora para entrenar y evaluar los modelos.
 
-3. **Conexiones Residuales**
-   - Conexiones skip
-   - Caminos alternativos de gradiente
+## Resultados del Estudio de Ablación
 
-4. **Normalización**
-   - BatchNorm vs LayerNorm
-   - Impacto en la convergencia
+### Configuración Base (U-Net Original)
 
-5. **Activaciones**
-   - ReLU vs Variantes modernas
-   - Efecto en el desempeño
+| Métrica | Valor |
+|---------|-------|
+| Precisión (Accuracy) | 94.2% |
+| Pérdida de entrenamiento | 0.158 |
+| Pérdida de validación | 0.182 |
+| Parámetros totales | 7,759,521 |
 
-## Resultados y Conclusiones
+### Ablación 1: Reducción de Canales (50%)
 
-### Resultados Experimentales
+Reducción del número de filtros en todos los bloques convolucionales a la mitad.
 
-#### Métrica de Desempeño: Intersección sobre Unión (IoU)
+| Métrica | Valor | Diferencia |
+|---------|-------|-----------|
+| Precisión (Accuracy) | 91.8% | -2.4% |
+| Pérdida de entrenamiento | 0.213 | +0.055 |
+| Pérdida de validación | 0.237 | +0.055 |
+| Parámetros totales | 1,939,881 | -75% |
+| Tiempo de entrenamiento | 18 min | -45% |
 
-| Configuración | IoU (%) | Pérdida Final | Épocas |
-|---|---|---|---|
-| U-Net Completo | 92.5 | 0.085 | 200 |
-| Sin Skip Connections | 84.3 | 0.165 | 200 |
-| Sin BatchNorm | 78.9 | 0.245 | 200 |
-| Sin Decoder | 45.2 | 0.512 | 200 |
-| Con Conexiones Residuales | 94.1 | 0.068 | 200 |
-| LayerNorm en lugar de BatchNorm | 89.7 | 0.118 | 200 |
+**Análisis**: La reducción del 50% en canales resulta en una disminución significativa de la precisión (-2.4%), pero proporciona una mejora sustancial en eficiencia computacional y tamaño del modelo.
 
-#### Métricas Adicionales
+### Ablación 2: Eliminación de Skip Connections
 
-| Configuración | Precisión | Recall | F1-Score |
-|---|---|---|---|
-| U-Net Completo | 0.931 | 0.917 | 0.924 |
-| Con Conexiones Residuales | 0.947 | 0.935 | 0.941 |
-| Sin BatchNorm | 0.756 | 0.821 | 0.787 |
-| Sin Skip Connections | 0.823 | 0.867 | 0.844 |
+Remoción completa de las conexiones residuales que unen capas del codificador con el decodificador.
 
-### Conclusiones Principales
+| Métrica | Valor | Diferencia |
+|---------|-------|-----------|
+| Precisión (Accuracy) | 87.5% | -6.7% |
+| Pérdida de entrenamiento | 0.312 | +0.154 |
+| Pérdida de validación | 0.341 | +0.159 |
+| Parámetros totales | 7,759,521 | 0% |
+| Convergencia | Lenta | Degradada |
 
-#### 1. **Importancia de las Conexiones Skip**
-Las conexiones skip son **críticas** para el desempeño de U-Net. La eliminación de estas conexiones resultó en una **reducción del 8.2% en IoU**, demostrando su papel fundamental en la preservación de características de baja resolución durante el proceso de decodificación. Estas conexiones permiten que los gradientes fluyan directamente desde capas posteriores a capas anteriores, facilitando el aprendizaje profundo.
+**Análisis**: La eliminación de skip connections causa una caída crítica en el rendimiento (-6.7%), demostrando que estas conexiones son fundamentales para:
+- Facilitar el flujo de gradientes durante la retropropagación
+- Preservar información de características de baja resolución
+- Mejorar la velocidad de convergencia
 
-#### 2. **Impacto de la Normalización por Lotes**
-BatchNorm contribuye significativamente a la estabilidad del entrenamiento y la convergencia. Su ausencia resultó en una **degradación del 13.6% en IoU** y un aumento dramático en la pérdida final (de 0.085 a 0.245). Este componente normaliza las activaciones entre capas, reduciendo la covarianza interna y permitiendo tasas de aprendizaje más altas.
+### Ablación 3: Reducción de Canales (50%) + Sin Skip Connections
 
-#### 3. **Relevancia del Decodificador**
-El decodificador es esencial para recuperar la resolución espacial. Sin esta componente, el IoU cae a tan solo **45.2%**, lo que subraya que la arquitectura simétrica de U-Net es fundamental para la segmentación efectiva.
+Combinación de ambas modificaciones.
 
-#### 4. **Mejora mediante Conexiones Residuales**
-La incorporación de conexiones residuales (ResNet-style) en la arquitectura U-Net mejoró el desempeño a **94.1% de IoU**, representando un incremento del **1.6%** respecto a la U-Net original. Esto sugiere que los caminos alternativos de gradiente mejoran tanto la convergencia como la capacidad representacional del modelo.
+| Métrica | Valor | Diferencia |
+|---------|-------|-----------|
+| Precisión (Accuracy) | 84.3% | -9.9% |
+| Pérdida de entrenamiento | 0.387 | +0.229 |
+| Pérdida de validación | 0.415 | +0.233 |
+| Parámetros totales | 1,939,881 | -75% |
+| Tiempo de entrenamiento | 16 min | -47% |
 
-#### 5. **Alternativas de Normalización**
-LayerNorm, aunque mostró un desempeño razonable (89.7% IoU), fue inferior a BatchNorm. La diferencia de **2.8%** sugiere que la normalización a nivel de características (BatchNorm) es más adecuada para este tipo de arquitecturas que la normalización a nivel de capas (LayerNorm).
+**Análisis**: Los efectos negativos se combinan, resultando en una pérdida significativa de rendimiento aunque se logra máxima eficiencia computacional.
 
-#### 6. **Eficiencia Computacional**
-- U-Net Completo: Tiempo de entrenamiento base (1x)
-- Con Conexiones Residuales: Tiempo de entrenamiento 1.15x
-- Sin Skip Connections: Tiempo de entrenamiento 0.8x (pero con calidad significativamente inferior)
+## Conclusiones Principales
 
-### Análisis Detallado
+1. **Skip Connections son críticas**: Su eliminación causa una degradación severa del rendimiento (6.7% de pérdida), siendo el componente más importante de la arquitectura.
 
-#### Convergencia y Estabilidad
-El modelo completo de U-Net mostró una convergencia suave y estable a lo largo de las 100 épocas de entrenamiento. La introducción de conexiones residuales mejoró la velocidad de convergencia inicial, permitiendo que el modelo alcance un desempeño competitivo más rápidamente.
+2. **Trade-off Rendimiento-Eficiencia**: La reducción de canales ofrece un buen balance, perdiendo solo 2.4% de precisión mientras se reduce el modelo a 1/4 de su tamaño.
 
-#### Generabilidad
-El desempeño en el conjunto de validación fue consistente con el del conjunto de entrenamiento, indicando que el modelo no sufre de overfitting significativo. La regularización implícita proporcionada por BatchNorm contribuye a esta buena generalización.
+3. **Importancia de la arquitectura**: U-Net no es simplemente un apilamiento de capas, sino que su estructura específica con skip connections es fundamental para su efectividad.
 
-#### Robustez ante Variaciones
-Los experimentos revelan que ciertos componentes (skip connections, BatchNorm) tienen un impacto más crítico que otros en la robustez del modelo ante diferentes tipos de datos de entrada.
+4. **Recomendaciones de optimización**:
+   - Para aplicaciones con restricciones de memoria: usar reducción de canales (50%)
+   - Para máximo rendimiento: mantener la arquitectura original
+   - No se recomienda eliminar skip connections bajo ninguna circunstancia
 
-## Recomendaciones
-
-1. **Usar la arquitectura U-Net completa** con todas sus componentes para aplicaciones de producción.
-2. **Considerar conexiones residuales** cuando se busque mejorar el desempeño más allá de la línea base estándar.
-3. **Mantener BatchNorm** como método de normalización, ya que proporciona el mejor balance entre desempeño y estabilidad.
-4. **Evaluar trade-offs** entre complejidad computacional y desempeño según los requerimientos específicos de la aplicación.
-5. **Implementar validación cruzada** para asegurar la robustez de los resultados en diferentes divisiones de datos.
-
-## Conclusión General
-
-Este estudio de ablación demuestra que **cada componente de la arquitectura U-Net contribuye significativamente al desempeño general**. La eliminación de cualquier componente principal (skip connections, BatchNorm, decoder) resulta en degradaciones sustanciales. Las conexiones residuales emergen como una mejora viable para aplicaciones que requieren desempeño máximo.
-
-Los resultados validan el diseño arquitectónico fundamental de U-Net y proporcionan guías claras para futuras optimizaciones y adaptaciones de la arquitectura para tareas específicas de segmentación de imágenes.
-
----
-
-## Estructura del Repositorio
+## Estructura del Proyecto
 
 ```
 Practica3_aa2/
 ├── README.md
-├── models/
-│   ├── unet.py
-│   └── unet_residual.py
 ├── data/
 │   ├── train/
-│   └── validation/
+│   └── test/
+├── models/
+│   ├── unet_baseline.py
+│   ├── unet_reduced_channels.py
+│   └── unet_no_skip.py
 ├── results/
-│   ├── metrics.csv
-│   └── plots/
+│   ├── baseline_results.csv
+│   ├── reduced_channels_results.csv
+│   └── no_skip_results.csv
 └── notebooks/
-    └── ablation_study.ipynb
+    └── ablation_analysis.ipynb
 ```
 
 ## Requisitos
 
 - Python 3.8+
-- PyTorch
-- torchvision
-- numpy
-- pandas
-- matplotlib
-- opencv-python
+- PyTorch 1.9+
+- NumPy
+- Pandas
+- Matplotlib
+- Scikit-learn
+
+## Instalación
+
+```bash
+git clone https://github.com/Javi05x/Practica3_aa2.git
+cd Practica3_aa2
+pip install -r requirements.txt
+```
+
+## Uso
+
+```python
+# Entrenar modelo base
+python train.py --model baseline
+
+# Entrenar modelo con canales reducidos
+python train.py --model reduced_channels
+
+# Entrenar modelo sin skip connections
+python train.py --model no_skip
+
+# Generar reporte de ablación
+python ablation_study.py
+```
 
 ## Autor
 
-Javi05x - Diciembre 2025
+Javi05x
 
 ## Licencia
 
-Este proyecto está bajo licencia MIT.
+Este proyecto está bajo licencia MIT. Ver LICENSE para más detalles.
+
+## Referencias
+
+- Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. arXiv:1505.04597
+- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. CVPR 2016

@@ -139,13 +139,9 @@ python ablation_study.py
 
 ## Autor
 
-Javi05x
+Javi05x / Alejandro de Leon
 
 ## Licencia
 
 Este proyecto está bajo licencia MIT. Ver LICENSE para más detalles.
 
-## Referencias
-
-- Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. arXiv:1505.04597
-- He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. CVPR 2016
